@@ -4,6 +4,8 @@ import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Iterator;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ShadowSurvivalAnimated extends JPanel
         implements ActionListener, KeyListener {
@@ -22,6 +24,7 @@ public class ShadowSurvivalAnimated extends JPanel
     int frameTick = 0;
 
     boolean up, down, left, right, shoot;
+    private final Set<Integer> heldKeys = new HashSet<>();
 
     ArrayList<Rectangle> bullets = new ArrayList<>();
     ArrayList<Rectangle> enemies = new ArrayList<>();
@@ -40,6 +43,7 @@ public class ShadowSurvivalAnimated extends JPanel
         addKeyListener(this);
         addFocusListener(new FocusAdapter() {
             @Override public void focusLost(FocusEvent e) {
+                heldKeys.clear();
                 up = down = left = right = shoot = false;
                 paused = true;
                 repaint();
@@ -128,6 +132,7 @@ public class ShadowSurvivalAnimated extends JPanel
         px = WIDTH / 2; py = HEIGHT / 2;
         health = 100; score = 0; tick = 0; frame = 0; frameTick = 0;
         bullets.clear(); enemies.clear();
+        heldKeys.clear();
         up = down = left = right = shoot = false;
         paused = gameOver = false;
         repaint();
@@ -163,26 +168,37 @@ public class ShadowSurvivalAnimated extends JPanel
     }
 
     @Override public void keyPressed(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_R) { restart(); return; }
-        if (e.getKeyCode() == KeyEvent.VK_P) { paused = !paused; up = down = left = right = shoot = false; repaint(); return; }
-        if (gameOver || paused) return;
-        switch (e.getKeyCode()) {
-            case KeyEvent.VK_W, KeyEvent.VK_UP -> up = true;
-            case KeyEvent.VK_S, KeyEvent.VK_DOWN -> down = true;
-            case KeyEvent.VK_A, KeyEvent.VK_LEFT -> left = true;
-            case KeyEvent.VK_D, KeyEvent.VK_RIGHT -> right = true;
-            case KeyEvent.VK_SPACE -> shoot = true;
+        int key = e.getKeyCode();
+        if (!heldKeys.add(key)) return;
+        if (key == KeyEvent.VK_R) {
+            restart();
+            heldKeys.add(key);
+            return;
         }
+        if (key == KeyEvent.VK_P) {
+            paused = !paused;
+            up = down = left = right = shoot = false;
+            repaint();
+            return;
+        }
+        updateHeldActions();
     }
 
     @Override public void keyReleased(KeyEvent e) {
-        switch (e.getKeyCode()) {
-            case KeyEvent.VK_W, KeyEvent.VK_UP -> up = false;
-            case KeyEvent.VK_S, KeyEvent.VK_DOWN -> down = false;
-            case KeyEvent.VK_A, KeyEvent.VK_LEFT -> left = false;
-            case KeyEvent.VK_D, KeyEvent.VK_RIGHT -> right = false;
-            case KeyEvent.VK_SPACE -> shoot = false;
+        heldKeys.remove(e.getKeyCode());
+        updateHeldActions();
+    }
+
+    private void updateHeldActions() {
+        if (paused || gameOver) {
+            up = down = left = right = shoot = false;
+            return;
         }
+        up = heldKeys.contains(KeyEvent.VK_W) || heldKeys.contains(KeyEvent.VK_UP);
+        down = heldKeys.contains(KeyEvent.VK_S) || heldKeys.contains(KeyEvent.VK_DOWN);
+        left = heldKeys.contains(KeyEvent.VK_A) || heldKeys.contains(KeyEvent.VK_LEFT);
+        right = heldKeys.contains(KeyEvent.VK_D) || heldKeys.contains(KeyEvent.VK_RIGHT);
+        shoot = heldKeys.contains(KeyEvent.VK_SPACE);
     }
 
     @Override public void keyTyped(KeyEvent e) {}

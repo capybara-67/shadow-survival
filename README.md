@@ -12,7 +12,7 @@ javac -d build src/ShadowSurvivalAnimated.java
 java -cp build ShadowSurvivalAnimated
 ```
 
-`P` pauses or resumes. `R` restarts. Losing window focus pauses the game and clears held keys. Game over keeps the window open for another attempt.
+`P` pauses or resumes. `R` restarts. Holding pause or restart does not repeatedly toggle the action. Movement keeps working when overlapping aliases are held, such as W and Up. Losing window focus pauses the game and clears held keys. Game over keeps the window open for another attempt.
 
 ## Test
 
@@ -21,4 +21,4 @@ javac -d build src/ShadowSurvivalAnimated.java tests/GameTest.java
 java -Djava.awt.headless=true -cp build GameTest
 ```
 
-Checks cover projectile collisions, score updates, pause behavior, and restart state. The game runs on Swing's event thread with a 16ms timer. Movement is tick-based; art is drawn with Java2D and needs no external assets.
+Checks cover projectile collisions, score updates, pause behavior, restart state, overlapping movement keys, and key auto-repeat. The game runs on Swing's event thread with a 16ms timer. Movement is tick-based; art is drawn with Java2D and needs no external assets.
